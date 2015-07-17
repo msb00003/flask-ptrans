@@ -1,5 +1,5 @@
-Flask-Pootle-Trans Extension
-============================
+Flask Extension for Template Localisation
+=========================================
 
 # Motivation
 
