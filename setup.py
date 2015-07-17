@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='flask-ptrans',
-    version='0.5',
+    version='0.6',
     description='Flask extension for localisation of templates from JSON files',
     author='Peter Harris',
     author_email='peter.harris@skyscanner.net',

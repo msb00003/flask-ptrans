@@ -82,19 +82,26 @@ class StringStore(object):
         """
         self.problems.append(StringStore.Problem(problem, strid, filename, string, serious))
 
-    def scan_json_files(self, directory, json_filename):
+    def scan_json_files(self, directory, json_filename, nested=False):
         """
-        Scan under top level directory for subfolders containing json files
-        and incorporate the strings from them into all_strings, noting the
-        owner of each.
+        Scan under top level directory for json files
+        and incorporate the strings from them into all_strings.
+        If nested is True, look only in subdirectories, which are then considered to be
+        the owners of the strings.
 
         :param directory: localisation directory pathname
         :param json_filename: filename for JSON string files
         """
-        json_files = glob.glob(os.path.join(directory, '*', json_filename))
+        if nested:
+            json_files = glob.glob(os.path.join(directory, '*', json_filename))
+        else:
+            json_files = glob.glob(os.path.join(directory, json_filename))
         for filename in json_files:
-            dir_name = os.path.split(filename)[0]
-            owner = os.path.basename(dir_name)
+            if nested:
+                dir_name = os.path.split(filename)[0]
+                owner = os.path.basename(dir_name)
+            else:
+                owner = "shared"
             self.owner_set.add(owner)
             with open(filename, "r") as f:
                 string_dict = json.load(f)
@@ -226,6 +233,7 @@ def main():
     add("directory", help="app directory. Should contain templates and localisation subdirectories")
     add("-v", "--verbose", default=False, action='store_true', help="Verbose output")
     add("-n", "--new-strings", default=False, action='store_true', help="output new strings as JSON")
+    add("--nested", default=False, action="store_true", help="localisations are nested in subdirectories")
     args = ap.parse_args()
     global logger
     logger = logging.getLogger('transcheck')
@@ -235,7 +243,7 @@ def main():
     else:
         logger.setLevel(logging.INFO)
     string_store = StringStore()
-    string_store.scan_json_files(os.path.join(args.directory, 'localisation'), args.json_file)
+    string_store.scan_json_files(os.path.join(args.directory, 'localisation'), args.json_file, nested=args.nested)
     string_store.scan_templates(os.path.join(args.directory, 'templates'))
     if args.new_strings and not string_store.serious_problems:
         print(string_store.new_strings_json())
