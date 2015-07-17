@@ -1,0 +1,17 @@
+# Python
+*.pyc
+
+# packaging
+dist
+*.egg-info
+
+# Virtualenv
+venv
+venv3
+
+# Pycharm
+.idea
+
+# Tests
+test_out
+.coverage
