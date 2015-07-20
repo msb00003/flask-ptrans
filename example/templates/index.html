@@ -1,0 +1,15 @@
+<? doctype html ?>
+<html>
+    <head>
+        <title>{% ptrans ex_example_title %}Example{% endptrans %}</title>
+    </head>
+    <body>
+        <h1>{% ptrans ex_example_head %}Example of flask-ptrans{% endptrans %}</h1>
+        <ul>
+            <li><a href="/?locale=en-GB">English</a></li>
+            <li><a href="/?locale=eo">Esperanto</a></li>
+            <li><a href="/?locale=qps-ploc">{% ptrans ex_pseudo %}Pseudo{% endptrans %}</a></li>
+        </ul>
+        {{ ptrans_get(locale, 'ex_rendered_n_times', 'This page has been rendered {n} times', n=render_count) }}
+    </body>
+</html>

@@ -1,0 +1,22 @@
+{
+  "ex_example_head": {
+    "value": "Example of flask-ptrans",
+    "comment": "Page heading"
+  },
+  "ex_example_title": {
+    "value": "Example",
+    "comment": "web page title"
+  },
+  "ex_pseudo": {
+    "value": "Pseudo",
+    "comment": "label for pseudo-locale"
+  },
+  "ex_rendered_n_times": {
+    "value": "This page has been rendered {n} times",
+    "comment": "information at bottom of page"
+  },
+  "ex_untranslated": {
+    "value": "Nothing is untranslatable",
+    "comment": "This should show up as untranslated. If nobody translates it, that is."
+  }
+}
