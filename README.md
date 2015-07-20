@@ -3,7 +3,7 @@ Flask Extension for Template Localisation
 
 # Motivation
 
-The string translation tool, Pootle, accepts translatable strings in the form of a JSON
+The string translation tool, [Pootle](https://github.com/translate/pootle), accepts translatable strings in the form of a JSON
 file mapping keys to values (with associated comments to aid translation).
 
 ## Example
