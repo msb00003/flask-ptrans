@@ -34,15 +34,18 @@ def load_strings(directory, locale):
 def main():
     ap = argparse.ArgumentParser()
     add = ap.add_argument
-    add("--dir", default=".")
+    add("dirs", default=[], nargs="*", help="directories to search for en-gb.json files [default .]")
     add("--locale", default="it-IT")
     args = ap.parse_args()
-    english_dict = load_strings(args.dir, 'en-GB')
-    other_dict = load_strings(args.dir, args.locale)
-    missing = sorted(k for k in english_dict
-                     if english_dict[k].get("value") and not other_dict.get(k, {}).get("value"))
-    for m in missing:
-        print(m)
+    if not args.dirs:
+        args.dirs = ["."]
+    for dirname in args.dirs:
+        english_dict = load_strings(dirname, 'en-GB')
+        other_dict = load_strings(dirname, args.locale)
+        missing = sorted(k for k in english_dict
+                         if english_dict[k].get("value") and not other_dict.get(k, {}).get("value"))
+        for m in missing:
+            print(m)
 
 if __name__ == '__main__':
     main()

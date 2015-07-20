@@ -13,9 +13,9 @@ All these are are links back to the same page with `locale` set on the query str
 
 ## Making the Pseudo-locale work
 
-Run the `pseudolocalise` script thus:
+Run the `ptrans_pseudolocalise` script thus:
 
-    pseudolocalise example/localisation/en-gb.json > example/localisation/qps-ploc.json
+    ptrans_pseudolocalise example/localisation/en-gb.json > example/localisation/qps-ploc.json
     
 It will mangle the English strings into weird but more-or-less readable unicode characters.
 
@@ -30,12 +30,12 @@ if you set your browser's first choice of language to Esperanto, that's the vari
 
 ## Checking you didn't miss any strings
 
-Running `check_templates -n example` should display
+Running `ptrans_check -n example` should display
 
     {}
     
 meaning there are no new strings used under `example/templates` that don't exist in the 
 `example/localisation/en-gb.json` file.
 
-Running `list_untranslated_strings --dir=example/localisation --locale=eo-xx` will show you any
+Running `ptrans_untranslated example/localisation --locale=eo-xx` will show you any
 strings that have an English version but no translation in Esperanto.
