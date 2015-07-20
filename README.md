@@ -110,9 +110,9 @@ and should help explain the context enough to make the translation unambiguous.
 
 The following scripts will be installed by pip, to assist the localisation process:
 
-## `check_templates`
+## `ptrans_check`
 
-    check_templates [options] directory
+    ptrans_check [options] directory
 
 Looks in the directory for subdirectories `templates` and `localisation`. Scans the template directory recursively to
 look for uses of `ptrans_get` or the `{% ptrans %}` directive, and scans the localisation directory for
@@ -122,27 +122,27 @@ and strings that are there but differ from the default text used in the template
 With the `--new-strings` option, writes any new strings used in the templates but not defined in the JSON files to
 standard output in the full JSON format. These can be checked and copied into the translation files.
 
-## `aggregate_json`
+## `ptrans_aggregate`
 
-    aggregate_json dest [source ...]
+    ptrans_aggregate dest [source ...]
 
 This collects JSON localisation files (in either format) from the source directories (by default, any subdirectories of
 the destination) and aggregates all the strings that belong in the same locale from all the files that are found.
  
 It produces one file per locale in the destination direction. These are in the simple, output format that `ptrans` uses.
 
-## `list_untranslated_strings`
+## `ptrans_untranslated`
 
-    list_untranslated_strings [--dir directory] [--locale locale]
+    ptrans_untranslated [--locale locale] [directory ...]
 
-Looks in the specified directory for `en-gb.json` (the default is the current directory) and the translation file for
+Looks in each specified directory for `en-gb.json` (the default is the current directory) and the translation file for
 the specified locale (default is `it-IT`). Lists the IDs of strings that are nonempty in the en-GB locale but empty
 or missing in the other locale.
 
 
-## `pseudolocalise`
+## `ptrans_pseudolocalise`
 
-    pseudolocalise file
+    ptrans_pseudolocalise file
 
 Reads a translation file in the simple output format, and produces a pseudo-localised version on standard output by
 mangling the characters with unicode diacritics, so the text is kind of readable but recognisably altered.
@@ -151,9 +151,9 @@ It leaves alone any part of the translatable string that is in curly braces, bec
 placeholder for inserting values with Python's `format` syntax.
 
 
-## `resolve_json_conflicts`
+## `ptrans_resolve`
 
-    resolve_json_conflicts [--update] [--interactive] filename
+    ptrans_resolve [--update] [--interactive] filename
 
 This is a utility for resolving git merge conflicts in a JSON file. It parses a file containing conflict markers,
 and constructs dictionaries for the two versions of the file. Then it attempts to resolve the conflict by combining

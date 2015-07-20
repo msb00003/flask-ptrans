@@ -207,7 +207,7 @@ def test_check_templates_spot_changed_string():
     with throwaway_dir() as dirpath:
         populate_with_fake_files(dirpath, test_files)
         string_store = check_templates.StringStore()
-        string_store.scan_json_files(os.path.join(dirpath, "localisation"), "en-gb.json")
+        string_store.scan_json_files(os.path.join(dirpath, "localisation"), "en-gb.json", nested=True)
         assert_equals(string_store.all_strings, {"key1": "hippopotamus"})
         string_store.scan_templates(os.path.join(dirpath, "templates"))
         assert_equals(len(string_store.problems), 1)
@@ -243,7 +243,7 @@ def test_check_templates_spot_duplicates():
     with throwaway_dir() as dirpath:
         populate_with_fake_files(dirpath, test_files)
         string_store = check_templates.StringStore()
-        string_store.scan_json_files(dirpath, "en-gb.json")
+        string_store.scan_json_files(dirpath, "en-gb.json", nested=True)
         assert_equals(string_store.all_strings, expected)
         assert_equals(string_store.string_owner, {"key1": "dir1", "key2": "dir1"})
         assert_equals(len(string_store.problems), 2)
