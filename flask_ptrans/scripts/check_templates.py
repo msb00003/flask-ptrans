@@ -227,7 +227,7 @@ def main():
     """
     parse arguments and run the correct checks
     """
-    ap = argparse.ArgumentParser(description=__doc__)
+    ap = argparse.ArgumentParser()
     add = ap.add_argument
     add("-f", "--json-file", help="filename for en-gb strings [%(default)s]", default="en-gb.json")
     add("directory", help="app directory. Should contain templates and localisation subdirectories")

@@ -133,7 +133,7 @@ def main():
     """
     parse arguments and perform JSON conflict resolution
     """
-    ap = argparse.ArgumentParser(description=__doc__)
+    ap = argparse.ArgumentParser()
     add = ap.add_argument
     add("filename", help="JSON file requiring conflict resolution", nargs='+')
     add("-i", "--interactive", default=False, action="store_true", help="prompt to resolve changed values")
