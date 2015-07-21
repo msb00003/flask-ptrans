@@ -112,7 +112,7 @@ def save_locale_files(destination, all_locales):
 
 
 def main():
-    ap = argparse.ArgumentParser(description=__doc__)
+    ap = argparse.ArgumentParser()
     add = ap.add_argument
     add("-v", "--verbose", default=False, action='store_true', help="Verbose output")
     add("-e", "--encoding", default="utf-8", help="input encoding (default utf-8)")
