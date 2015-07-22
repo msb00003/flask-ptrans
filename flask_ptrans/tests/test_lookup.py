@@ -21,9 +21,11 @@ from flask_ptrans import ptrans
 
 FAKE_LOCALES = {
     "en-GB": {"hello": "hello",
-              "hello-who": "Hello, {who}!"},
+              "hello-who": "Hello, {who}!",
+              "other-water": "water"},
     "es-ES": {"hello": "hola",
-              "hello-who": "Hola, {who}!"},
+              "hello-who": "Hola, {who}!",
+              "other-water": "agua"},
 }
 
 
@@ -89,6 +91,17 @@ def test_lookup_substitution_wrong_type():
     """
     store = fake_string_store(FAKE_LOCALES)
     assert_equals(store.lookup(None, "hello-who", "Hello, {who}!", who="World"), "Hello, World!")
+
+
+def test_subset():
+    store = fake_string_store(FAKE_LOCALES)
+    assert_equals(store.subset('es-ES', 'hello'),
+                  {"hello": "hola",
+                   "hello-who": "Hola, {who}!"})
+    assert_equals(store.subset('es-ES', 'hello-'),
+                  {"hello-who": "Hola, {who}!"})
+    assert_equals(store.subset('es-ES', 'nothing'), {})
+    assert_equals(store.subset(None, 'hello'), {})
 
 
 # stop "import *" from taking anything except test cases

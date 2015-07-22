@@ -86,6 +86,23 @@ class LazyLocalisedStringStore(object):
                 pass
         return translated
 
+    def subset(self, locale, *prefixes):
+        """
+        Return a subset of the string store for a specified locale, where the string IDs match any of the
+        given prefixes.
+        :param locale: locale code, e.g. 'pt-BR'
+        :param prefixes: array of prefixes e.g. ['flights_payment_', 'shared_country_']
+        :return: a dict containing keys and values
+        """
+        if not isinstance(locale, (str, type(u''))):
+            logging.error("locale is a %s for subset %s", locale.__class__.__name__, prefixes)
+            return {}
+        if locale not in self.locales:
+            self.load_locale(locale)
+        trans = {k: v for (k, v) in self.locales[locale].items()
+                 if any(k.startswith(p) for p in prefixes)}
+        return trans
+
     def load_locale(self, locale):
         """
         Load best match for requested locale dict
@@ -165,7 +182,9 @@ class PootleTranslationExtension(jinja2.ext.Extension):
         extend the environment so ptrans_lookup function is available
         """
         jinja2.ext.Extension.__init__(self, environment)
-        environment.globals.update(ptrans_get=_global_string_store.lookup)
+        environment.globals.update(
+            ptrans_get=_global_string_store.lookup,
+            ptrans_subset=_global_string_store.subset)
 
     def parse(self, parser):
         """
