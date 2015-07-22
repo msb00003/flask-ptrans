@@ -96,7 +96,7 @@ class StringStore(object):
             json_files = glob.glob(os.path.join(directory, '*', json_filename))
         else:
             json_files = glob.glob(os.path.join(directory, json_filename))
-        for filename in json_files:
+        for filename in sorted(json_files):
             if nested:
                 dir_name = os.path.split(filename)[0]
                 owner = os.path.basename(dir_name)
