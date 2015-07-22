@@ -3,12 +3,12 @@ from setuptools import setup, find_packages
 
 setup(
     name='flask-ptrans',
-    version='0.7.2',
+    version='0.8',
     description='Flask extension for localisation of templates from JSON files',
     author='Peter Harris',
     author_email='peter.harris@skyscanner.net',
     url='https://github.com/Skyscanner/flask-ptrans',
-    download_url='https://github.com/Skyscanner/flask-ptrans/tarball/0.7.2',
+    download_url='https://github.com/Skyscanner/flask-ptrans/tarball/0.8',
     packages=find_packages(),
     install_requires=['flask'],
     extras_require={'test': 'nose'},
@@ -22,7 +22,8 @@ setup(
         ]
         },
     classifiers=[
-        'Development Status :: 3 - Alpha',
+        'Development Status :: 4 - Beta',
+        'Framework :: Flask',
         'Intended Audience :: Developers',
         'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',

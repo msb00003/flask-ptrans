@@ -77,6 +77,17 @@ it unchanged if no translation was found. It is roughly the same as inserting:
 If you need to do anything fancy (such as inserting values into placeholders in the string) you will
 need to use the function, because the template syntax is limited to plain substitution.
 
+You may need to insert a subset of the translated strings into the page for a script to use. In that case,
+you can use `ptrans_subset` to insert a JSON object containing key,value pairs in the specified locale, for
+all keys matching one or more prefixes.
+
+    <script>
+    strings = {{ ptrans_subset(locale, 'people-', 'dates-')|tojson|safe }};
+    </script>
+    
+Always filter the result with `tojson|safe` unless you want Python dictionary syntax and HTML escaping. For most
+uses you want proper JSON without any escaped characters inside your script.
+
 
 # Choosing a Locale
 

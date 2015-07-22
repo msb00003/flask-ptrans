@@ -18,6 +18,8 @@ See the License for the specific language governing permissions and limitations 
 
 from nose.tools import assert_equals, assert_raises
 import jinja2
+from flask.json import tojson_filter
+from flask_ptrans.ptrans import _global_string_store as string_store
 
 
 def fake_jinja(template_dict):
@@ -27,6 +29,7 @@ def fake_jinja(template_dict):
     """
     jinja_env = jinja2.Environment(loader=jinja2.DictLoader(template_dict))
     jinja_env.add_extension("flask_ptrans.ptrans.ptrans")
+    jinja_env.filters['tojson'] = tojson_filter
     return jinja_env
 
 
@@ -34,6 +37,7 @@ FAKE_TEMPLATES = {
     "trivial.html": "<html></html>",
     "simple.html": "<p>{% ptrans test-simple %}Unknown{% endptrans %}</p>",
     "broken.html": "<p>{% ptrans test-broken %}{% for i in [1,2,3] %}{% end %}{% endptrans %}</p>",
+    "script.html": "<script> strings = {{ ptrans_subset(locale, 'prefix-')|tojson|safe }}; </script>"
 }
 
 
@@ -61,6 +65,23 @@ def test_broken_template():
     """
     env = fake_jinja(FAKE_TEMPLATES)
     assert_raises(jinja2.TemplateSyntaxError, env.get_template, "broken.html")
+
+
+def test_script_template():
+    """
+    can call ptrans_subset() to insert JSON dict of strings
+    """
+    env = fake_jinja(FAKE_TEMPLATES)
+    t = env.get_template("script.html")
+    string_store.locales['en-GB'] = {
+        "prefix-a": "A",
+        "prefix-b": "B",
+        "other-z": "Z"
+    }
+    script_with_strings = t.render(locale='en-GB')
+    script_without_strings = t.render(locale='es-ES')
+    assert_equals(script_without_strings, '<script> strings = {}; </script>')
+    assert_equals(script_with_strings, '<script> strings = {"prefix-a": "A", "prefix-b": "B"}; </script>')
 
 # stop "import *" from taking anything except test cases
 __all__ = [name for name in dir() if name.startswith("test_")]
