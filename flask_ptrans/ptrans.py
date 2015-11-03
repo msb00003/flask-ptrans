@@ -86,6 +86,17 @@ class LazyLocalisedStringStore(object):
                 pass
         return translated
 
+    def lookup_cascade(self, locale, strid, fallback=None, fallback_locale="en-GB", **format_kwargs):
+        """
+        Localised version of a string, fallback to 1) fallback string, 2) other locale, 3) key
+        """
+        if not fallback:
+            if fallback_locale not in self.locales:
+                self.load_locale(fallback_locale)
+            fallback = self.locales[fallback_locale].get(strid, strid)
+        translated = self.lookup(locale, strid, fallback, **format_kwargs)
+        return translated
+
     def subset(self, locale, *prefixes):
         """
         Return a subset of the string store for a specified locale, where the string IDs match any of the
@@ -183,7 +194,7 @@ class PootleTranslationExtension(jinja2.ext.Extension):
         """
         jinja2.ext.Extension.__init__(self, environment)
         environment.globals.update(
-            ptrans_get=_global_string_store.lookup,
+            ptrans_get=_global_string_store.lookup_cascade,
             ptrans_subset=_global_string_store.subset)
 
     def parse(self, parser):
