@@ -22,10 +22,11 @@ from flask_ptrans import ptrans
 FAKE_LOCALES = {
     "en-GB": {"hello": "hello",
               "hello-who": "Hello, {who}!",
-              "other-water": "water"},
+              "other-water": "water",
+              "only-english": "only english"},
     "es-ES": {"hello": "hola",
               "hello-who": "Hola, {who}!",
-              "other-water": "agua"},
+              "other-water": "agua"}
 }
 
 
@@ -91,6 +92,48 @@ def test_lookup_substitution_wrong_type():
     """
     store = fake_string_store(FAKE_LOCALES)
     assert_equals(store.lookup(None, "hello-who", "Hello, {who}!", who="World"), "Hello, World!")
+
+
+def test_lookup_cascade_simple():
+    """
+    lookup_cascade finds correct string for locale
+    """
+    store = fake_string_store(FAKE_LOCALES)
+    assert_equals(store.lookup_cascade("en-GB", "hello"), "hello")
+    assert_equals(store.lookup_cascade("es-ES", "hello"), "hola")
+
+
+def test_lookup_cascade_fallback_string():
+    """
+    fall back to fallback string
+    """
+    store = fake_string_store(FAKE_LOCALES)
+    assert_equals(store.lookup_cascade("en-GB", "goodbye", fallback="Goodbye"), "Goodbye")
+    assert_equals(store.lookup_cascade("es-ES", "goodbye", fallback="Adios"), "Adios")
+
+
+def test_lookup_cascade_fallback_locale():
+    """
+    fall back to other locale
+    """
+    store = fake_string_store(FAKE_LOCALES)
+
+    # Fall back to en-GB by default
+    assert_equals(store.lookup_cascade(None, "hello"), "hello")
+    # Fall back to specified locale
+    assert_equals(store.lookup_cascade(None, "hello", fallback_locale="es-ES"), "hola")
+
+
+def test_lookup_cascade_no_fallback():
+    """
+    fall back to string key
+    """
+    store = fake_string_store(FAKE_LOCALES)
+    assert_equals(store.lookup_cascade("en-GB", "goodbye"), "goodbye")
+    assert_equals(store.lookup_cascade("es-ES", "goodbye"), "goodbye")
+    # If string does not exist in fallback locale, even if it does exist in en-GB,
+    # fall back to key
+    assert_equals(store.lookup_cascade("es-AR", "only-english", fallback_locale="es-ES"), "only-english")
 
 
 def test_subset():
