@@ -170,7 +170,7 @@ class StringStore(object):
             if dir_name in self.owner_set:
                 owner = dir_name
             for basename in basenames:
-                if not re.match(r".*\.html?$", basename):
+                if not re.match(r".*\.(html|json|j2|xml)?$", basename):
                     continue    # probably not a template file
                 filename = os.path.join(dirpath, basename)  # full path to file
                 with open(filename, "r") as f:
