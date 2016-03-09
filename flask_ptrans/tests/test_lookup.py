@@ -26,7 +26,8 @@ FAKE_LOCALES = {
               "only-english": "only english"},
     "es-ES": {"hello": "hola",
               "hello-who": "Hola, {who}!",
-              "other-water": "agua"}
+              "other-water": "agua"},
+    "fr-FR": {"hello": {"value": "bonjour", "comment": "A greeting"}}  # longer format with comment
 }
 
 
@@ -43,6 +44,7 @@ def test_simple_lookup():
     store = fake_string_store(FAKE_LOCALES)
     assert_equals(store.lookup("es-ES", "hello", "FAIL"), "hola")
     assert_equals(store.lookup("en-GB", "hello", "FAIL"), "hello")
+    assert_equals(store.lookup("fr-FR", "hello", "FAIL"), "bonjour")
 
 
 def test_lookup_no_string():

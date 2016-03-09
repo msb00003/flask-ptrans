@@ -109,8 +109,7 @@ problem if you want to call `best_locale()` for each request.
 # Localisation files
 
 There are two formats of localisation file, both JSON. The simple or output format is a single dictionary containing
-string IDs as keys and strings as values. This is the format used by the `ptrans` module. The directory specified in 
-`ptrans.init_localisation(path)` should contain files of that format.
+string IDs as keys and strings as values.
 
 The full or input format is a dictionary whose keys are string IDs, but whose values are dictionaries with "value"
 and "comment" entries. The "value" is the string to be translated. The "comment" is for a human translator to read,
@@ -140,7 +139,7 @@ standard output in the full JSON format. These can be checked and copied into th
 This collects JSON localisation files (in either format) from the source directories (by default, any subdirectories of
 the destination) and aggregates all the strings that belong in the same locale from all the files that are found.
  
-It produces one file per locale in the destination direction. These are in the simple, output format that `ptrans` uses.
+It produces one file per locale in the destination direction. These are in the simple format without comments.
 
 ## `ptrans_untranslated`
 

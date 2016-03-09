@@ -76,6 +76,8 @@ class LazyLocalisedStringStore(object):
             # Invariant: self.locales[locale] is a dict (possibly empty, possibly alias to another
             #  loaded previously)
             translated = self.locales[locale].get(strid, fallback)
+            if isinstance(translated, dict):
+                translated = translated.get("value", fallback)
         if format_kwargs:
             if not isinstance(translated, type(u'')):   # ensure it's unicode, can't insert unicode into a bytestring
                 translated = translated.decode('utf-8')
