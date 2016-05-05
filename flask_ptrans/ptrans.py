@@ -53,10 +53,11 @@ class LazyLocalisedStringStore(object):
     is made once when attempting to load a locale for the first time.
     """
 
-    def __init__(self, localisation_directory=None):
+    def __init__(self, localisation_directory=None, allow_empty=False):
         self.locales = {}               # {locale:dict_of_strings}
         self._known_locales = set()     # locales known to have a file that will match them
         self.localisation_dir = localisation_directory  # path to directory containing LOCALE.json files
+        self.allow_empty = allow_empty  # accept empty translations? If not, they are treated as though missing
 
     def lookup(self, locale, strid, fallback, **format_kwargs):
         """
@@ -78,6 +79,8 @@ class LazyLocalisedStringStore(object):
             translated = self.locales[locale].get(strid, fallback)
             if isinstance(translated, dict):
                 translated = translated.get("value", fallback)
+            if not translated and not self.allow_empty:
+                translated = fallback
         if format_kwargs:
             if not isinstance(translated, type(u'')):   # ensure it's unicode, can't insert unicode into a bytestring
                 translated = translated.decode('utf-8')
@@ -239,8 +242,9 @@ class PootleTranslationExtension(jinja2.ext.Extension):
 ptrans = PootleTranslationExtension
 
 
-def init_localisation(localisation_directory):
+def init_localisation(localisation_directory, allow_empty=False):
     _global_string_store.localisation_dir = localisation_directory
+    _global_string_store.allow_empty = allow_empty
 
 
 def best_locale():
