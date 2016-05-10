@@ -49,6 +49,9 @@ The JSON files should be named using the locale of the strings they contain, in 
 `en-gb.json` or `pt-br.json`. They can be in the Pootle format as described above, or be a simple mapping from
 string ID to translated string (since you don't need to include translator comments in a deployed application).
 
+By default, empty translations are treated the same as missing translations (fall back to default string),
+but you can override this if you are really sure by specifying ``init_localisation(path, allow_empty=True)``.
+
 
 # The `ptrans_get` Function
 
