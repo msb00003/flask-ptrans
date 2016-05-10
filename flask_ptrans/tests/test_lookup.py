@@ -25,14 +25,15 @@ FAKE_LOCALES = {
               "other-water": "water",
               "only-english": "only english"},
     "es-ES": {"hello": "hola",
+              "empty": "",
               "hello-who": "Hola, {who}!",
               "other-water": "agua"},
     "fr-FR": {"hello": {"value": "bonjour", "comment": "A greeting"}}  # longer format with comment
 }
 
 
-def fake_string_store(fake_locales):
-    store = ptrans.LazyLocalisedStringStore()
+def fake_string_store(fake_locales, allow_empty=False):
+    store = ptrans.LazyLocalisedStringStore(allow_empty=allow_empty)
     store.locales = fake_locales.copy()
     return store
 
@@ -53,6 +54,17 @@ def test_lookup_no_string():
     """
     store = fake_string_store(FAKE_LOCALES)
     assert_equals(store.lookup("en-GB", "goodbye", "FAIL-EN"), "FAIL-EN")
+
+
+def test_lookup_empty_string():
+    """
+    lookup falls back to the default if translation is empty
+    unless allow_empty is True
+    """
+    store = fake_string_store(FAKE_LOCALES)
+    assert_equals(store.lookup("es-ES", "empty", "NOT EMPTY"), "NOT EMPTY")
+    store2 = fake_string_store(FAKE_LOCALES, allow_empty=True)
+    assert_equals(store2.lookup("es-ES", "empty", "NOT EMPTY"), "")
 
 
 def test_lookup_no_locale():
