@@ -53,11 +53,15 @@ class LazyLocalisedStringStore(object):
     is made once when attempting to load a locale for the first time.
     """
 
-    def __init__(self, localisation_directory=None, allow_empty=False):
+    def __init__(self, localisation_directory=None, allow_empty=False, locale_hook=None):
         self.locales = {}               # {locale:dict_of_strings}
         self._known_locales = set()     # locales known to have a file that will match them
         self.localisation_dir = localisation_directory  # path to directory containing LOCALE.json files
         self.allow_empty = allow_empty  # accept empty translations? If not, they are treated as though missing
+        self.locale_hook = locale_hook
+
+    def install_locale_hook(self, locale_hook):
+        self.locale_hook = locale_hook
 
     def lookup(self, locale, strid, fallback, **format_kwargs):
         """
@@ -72,11 +76,10 @@ class LazyLocalisedStringStore(object):
             logging.error("locale is a %s for %s", locale.__class__.__name__, strid)
             translated = fallback
         else:
-            if locale not in self.locales:
-                self.load_locale(locale)
-            # Invariant: self.locales[locale] is a dict (possibly empty, possibly alias to another
+            locale_dict = self.locales.get(locale) or self.load_locale(locale)
+            # Invariant: locale_dict is a dict (possibly empty, possibly alias to another
             #  loaded previously)
-            translated = self.locales[locale].get(strid, fallback)
+            translated = locale_dict.get(strid, fallback)
             if isinstance(translated, dict):
                 translated = translated.get("value", fallback)
             if not translated and not self.allow_empty:
@@ -119,19 +122,28 @@ class LazyLocalisedStringStore(object):
                  if any(k.startswith(p) for p in prefixes)}
         return trans
 
-    def load_locale(self, locale):
+    def load_locale(self, locale):  # -> dict
         """
         Load best match for requested locale dict
         """
+        # first try the hook function if one was provided
+        if self.locale_hook:
+            string_dict = self.locale_hook(locale)
+            if string_dict:
+                self.locales[locale] = string_dict
+            return string_dict
+
+        # See if we have strings in a file
         filepath = self.best_file_for_locale(locale.lower())
         if not filepath:
             logging.warning("ptrans no translations for locale %s", locale)
             self.locales[locale] = {}  # give up, always fall back to untranslated text
+            return {}
         else:
             actual_locale_file = os.path.basename(filepath)
             actual_locale = os.path.splitext(actual_locale_file)[0]
             if actual_locale in self.locales:
-                self.locales[locale] = self.locales[actual_locale]  # alias to already loaded locale
+                string_dict = self.locales[locale] = self.locales[actual_locale]  # alias to already loaded locale
             else:
                 logging.info("ptrans loading %s", filepath)
                 with open(filepath, "r") as jsonfile:
@@ -148,6 +160,7 @@ class LazyLocalisedStringStore(object):
                         string_dict = {}    # give up, fall back to untranslated text
                 self.locales[locale] = string_dict
                 self.locales[actual_locale] = string_dict
+            return string_dict
 
     def best_file_for_locale(self, locale):
         """ first choice is exact match, second is any other locale with same language """
@@ -242,8 +255,10 @@ class PootleTranslationExtension(jinja2.ext.Extension):
 ptrans = PootleTranslationExtension
 
 
-def init_localisation(localisation_directory, allow_empty=False):
+def init_localisation(localisation_directory=None, allow_empty=False, locale_hook=None):
     _global_string_store.localisation_dir = localisation_directory
+    if callable(locale_hook):
+        _global_string_store.install_locale_hook(locale_hook)
     _global_string_store.allow_empty = allow_empty
 
 

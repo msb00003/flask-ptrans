@@ -52,6 +52,19 @@ string ID to translated string (since you don't need to include translator comme
 By default, empty translations are treated the same as missing translations (fall back to default string),
 but you can override this if you are really sure by specifying ``init_localisation(path, allow_empty=True)``.
 
+You can get fancy and provide your own way to find translations instead of looking for files in a directory:
+
+    def find_translation(locale: str) -> dict:
+        """
+        accept a locale and return a dict {key: string} for that language
+        """
+        ...
+        
+    ptrans.init_localisation(locale_hook=find_translation)
+
+This allows you to (for example) pull translations from a web service. Once the function returns a nonempty dict,
+that will be cached indefinitely (same as it is when translations are found in a file), and the function won't be
+called again for the same locale.
 
 # The `ptrans_get` Function
 
