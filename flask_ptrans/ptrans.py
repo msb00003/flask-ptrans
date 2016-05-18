@@ -99,9 +99,8 @@ class LazyLocalisedStringStore(object):
         Localised version of a string, fallback to 1) fallback string, 2) other locale, 3) key
         """
         if not fallback:
-            if fallback_locale not in self.locales:
-                self.load_locale(fallback_locale)
-            fallback = self.locales[fallback_locale].get(strid, strid)
+            fallback_dict = self.locales.get(fallback_locale) or self.load_locale(fallback_locale)
+            fallback = fallback_dict.get(strid, strid)
         translated = self.lookup(locale, strid, fallback, **format_kwargs)
         return translated
 
@@ -116,9 +115,8 @@ class LazyLocalisedStringStore(object):
         if not isinstance(locale, (str, type(u''))):
             logging.error("locale is a %s for subset %s", locale.__class__.__name__, prefixes)
             return {}
-        if locale not in self.locales:
-            self.load_locale(locale)
-        trans = {k: v for (k, v) in self.locales[locale].items()
+        locale_dict = self.locales.get(locale) or self.load_locale(locale)
+        trans = {k: v for (k, v) in locale_dict.items()
                  if any(k.startswith(p) for p in prefixes)}
         return trans
 
