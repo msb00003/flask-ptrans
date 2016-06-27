@@ -126,9 +126,15 @@ class LazyLocalisedStringStore(object):
         """
         # first try the hook function if one was provided
         if self.locale_hook:
+            lang, hyphen, variant = locale.partition("-")
             string_dict = self.locale_hook(locale)
             if string_dict:
                 self.locales[locale] = string_dict
+                if lang not in self.locales:
+                    self.locales[lang] = string_dict    # set this as the default locale for the base language too
+            else:
+                if hyphen and lang in self.locales:
+                    self.locales[locale] = string_dict = self.locales[lang]    # make do with base language locale
             return string_dict
 
         # See if we have strings in a file

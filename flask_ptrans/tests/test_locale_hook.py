@@ -18,6 +18,10 @@ def locale_hook(locale):
         return {
             "hello": "hola"
         }
+    elif locale == "fr-FR":
+        return {
+            "hello": "bonjour"
+        }
     else:
         return {}
 
@@ -32,7 +36,7 @@ def test_locale_hook_works():
 
     assert_equals(string_store.lookup("en-gb", "hello", "FAIL"), "hello")
     assert_equals(string_store.lookup("es-MX", "hello", "FAIL"), "hola")
-    assert_equals(string_store.lookup("fr-FR", "hello", "hello"), "hello")
+    assert_equals(string_store.lookup("fr-FR", "hello", "hello"), "bonjour")
 
 
 def test_locale_hook_only_called_once():
@@ -47,7 +51,16 @@ def test_locale_hook_only_called_once():
 def test_locale_hook_called_again_if_no_results():
 
     string_store = ptrans.LazyLocalisedStringStore(locale_hook=locale_hook)
-    assert_equals(string_store.lookup("fr-FR", "hello", "hello"), "hello")
+    assert_equals(string_store.lookup("de-DE", "hello", "hello"), "hello")
 
     string_store.install_locale_hook(explode)
-    assert_raises(ValueError, string_store.lookup, "fr-FR", "anything", "whatever")
+    assert_raises(ValueError, string_store.lookup, "de-DE", "anything", "whatever")
+
+
+def test_fallback_to_base_language():
+
+    string_store = ptrans.LazyLocalisedStringStore(locale_hook=locale_hook)
+    assert_equals(string_store.lookup("fr-CH", "hello", "FAIL"), "FAIL")        # no fr-CH locale
+    assert_equals(string_store.lookup("fr-FR", "hello", "FAIL"), "bonjour")     # fr-FR is OK
+    assert_equals(string_store.lookup("fr", "hello", "FAIL"), "bonjour")        # base fr language works now
+    assert_equals(string_store.lookup("fr-CH", "hello", "FAIL"), "bonjour")     # so does fr-CH which falls back to it
