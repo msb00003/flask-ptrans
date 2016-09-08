@@ -17,9 +17,19 @@ See the License for the specific language governing permissions and limitations 
 """
 
 from nose.tools import assert_equals, assert_raises
-import jinja2
-from flask.json import tojson_filter
-from flask_ptrans.ptrans import _global_string_store as string_store
+from unittest import SkipTest
+
+try:
+    # noinspection PyUnresolvedReferences
+    # noinspection PyPackageRequirements
+    import jinja2
+    # noinspection PyUnresolvedReferences
+    from flask.json import tojson_filter
+    # noinspection PyProtectedMember
+    from flask_ptrans.ptrans import _global_string_store as string_store
+except ImportError:
+    jinja2 = None
+    string_store = None
 
 
 def fake_jinja(template_dict):
@@ -27,6 +37,8 @@ def fake_jinja(template_dict):
     make a jinja2 environment with ptrans extension, that loads its templates
     from the provided dictionary
     """
+    if not jinja2:
+        raise SkipTest("no jinja2")
     jinja_env = jinja2.Environment(loader=jinja2.DictLoader(template_dict))
     jinja_env.add_extension("flask_ptrans.ptrans.ptrans")
     jinja_env.filters['tojson'] = tojson_filter

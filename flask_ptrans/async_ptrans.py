@@ -1,45 +1,16 @@
 """
-    Flask/Jinja2 extension for pootle-based localisation
+Async version of LazyLocalisedStringStore, Python 3.5 and above only
 
-    Adds the following syntax to template files:
-
-    {% ptrans STRID %}Fallback text{% endptrans %}
-
-    This does 2 things:
-    1. At runtime, it replaces its body with localised string whose ID is STRID, for the currently selected locale,
-       or if the string ID is not defined for that locale, leaves it as the Fallback text provided.
-
-    2. Marks the translatable string in the template, so the Fallback text can be extracted automatically as the
-       en-gb text for that string ID. Our script to do this can then check for inconsistencies.
-
-    Depends on {{locale}} being available in the template being rendered. IOW, pass it into render_template() as
-    a keyword argument. You will want to do this anyway, so every page can begin with:
-      <html lang="{{locale}}">
-    thereby letting the browser know what language the page is being rendered in.
-
-    String IDs start with a letter, and contain alphanumerics, underscores and hyphens.
-
-Copyright 2015 Skyscanner Ltd
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing,
-software distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and limitations under the License.
-
+For use with Tornado or asyncio.
 """
+
 import logging
 import glob
 import os.path
 import json
 
 
-class LazyLocalisedStringStore(object):
+class AsyncLocalisedStringStore(object):
     """
     String store that looks up strings in a dictionary, chosen according to locale.
     The dictionaries are loaded from JSON files only as needed.
@@ -49,15 +20,19 @@ class LazyLocalisedStringStore(object):
     is made once when attempting to load a locale for the first time.
     """
 
-    def __init__(self, localisation_directory=None, allow_empty=False, locale_hook=None):
+    def __init__(self, localisation_directory=None, allow_empty=False, async_locale_hook=None):
         self.locales = {}               # {locale:dict_of_strings}
         self._known_locales = set()     # locales known to have a file that will match them
         self.localisation_dir = localisation_directory  # path to directory containing LOCALE.json files
         self.allow_empty = allow_empty  # accept empty translations? If not, they are treated as though missing
-        self.locale_hook = locale_hook
+        self.locale_hook = async_locale_hook
 
-    def install_locale_hook(self, locale_hook):
-        self.locale_hook = locale_hook
+    def install_locale_hook(self, async_locale_hook):
+        self.locale_hook = async_locale_hook
+
+    async def prepare_locale(self, locale):
+        """ invoke this to ensure a locale is loaded, before using lookup """
+        return self.locales.get(locale) or await self.load_locale(locale)
 
     def lookup(self, locale, strid, fallback, **format_kwargs):
         """
@@ -72,7 +47,7 @@ class LazyLocalisedStringStore(object):
             logging.error("locale is a %s for %s", locale.__class__.__name__, strid)
             translated = fallback
         else:
-            locale_dict = self.locales.get(locale) or self.load_locale(locale)
+            locale_dict = self.locales.get(locale) or {}
             # Invariant: locale_dict is a dict (possibly empty, possibly alias to another
             #  loaded previously)
             translated = locale_dict.get(strid, fallback)
@@ -95,7 +70,7 @@ class LazyLocalisedStringStore(object):
         Localised version of a string, fallback to 1) fallback string, 2) other locale, 3) key
         """
         if not fallback:
-            fallback_dict = self.locales.get(fallback_locale) or self.load_locale(fallback_locale)
+            fallback_dict = self.locales.get(fallback_locale) or {}
             fallback = fallback_dict.get(strid, strid)
         translated = self.lookup(locale, strid, fallback, **format_kwargs)
         return translated
@@ -111,19 +86,19 @@ class LazyLocalisedStringStore(object):
         if not isinstance(locale, (str, type(u''))):
             logging.error("locale is a %s for subset %s", locale.__class__.__name__, prefixes)
             return {}
-        locale_dict = self.locales.get(locale) or self.load_locale(locale)
+        locale_dict = self.locales.get(locale) or {}
         trans = {k: v for (k, v) in locale_dict.items()
                  if any(k.startswith(p) for p in prefixes)}
         return trans
 
-    def load_locale(self, locale):  # -> dict
+    async def load_locale(self, locale):  # -> dict
         """
         Load best match for requested locale dict
         """
         # first try the hook function if one was provided
         if self.locale_hook:
             lang, hyphen, variant = locale.partition("-")
-            string_dict = self.locale_hook(locale)
+            string_dict = await self.locale_hook(locale)
             if string_dict:
                 self.locales[locale] = string_dict
                 if lang not in self.locales:
@@ -197,98 +172,12 @@ class LazyLocalisedStringStore(object):
 
 
 # This global string store is a singleton
-_global_string_store = LazyLocalisedStringStore()
-
-try:
-    # noinspection PyUnresolvedReferences
-    import jinja2.ext
-    # noinspection PyUnresolvedReferences
-    import jinja2.nodes
-
-    class PootleTranslationExtension(jinja2.ext.Extension):
-        """
-        Provide the {% ptrans %} tag
-        """
-        tags = {'ptrans'}
-
-        def __init__(self, environment):
-            """
-            extend the environment so ptrans_lookup function is available
-            """
-            jinja2.ext.Extension.__init__(self, environment)
-            environment.globals.update(
-                ptrans_get=_global_string_store.lookup_cascade,
-                ptrans_subset=_global_string_store.subset)
-
-        def parse(self, parser):
-            """
-            :param parser: parser for HTML templates
-            :return: a jinja2.nodes.Node defining how to render the contents of the tag at run-time
-            """
-            next(parser.stream)     # skip 'ptrans' token
-
-            # expect a string ID (names and hyphens), then block_end
-            name = parser.stream.expect('name')
-            strid_buf = [name.value]
-            while parser.stream.current.type in ('name', 'sub'):
-                strid_buf.append(parser.stream.current.value)
-                next(parser.stream)
-            strid = ''.join(strid_buf)
-            parser.stream.expect('block_end')   # %}
-
-            # parse the block of fallback text
-            body = []
-            while parser.stream.current.type == 'data':
-                body.append(parser.stream.current.value)
-                next(parser.stream)
-            fallback = u''.join(body)
-
-            # expect {% endptrans %}
-            parser.stream.expect('block_begin')
-            name = parser.stream.expect('name')
-            if name.value != 'endptrans':
-                parser.fail('ptrans blocks can only contain text, not control structures', name.lineno)
-
-            # make a Call node that calls ptrans_lookup with the locale, strid and fallback
-            ptrans_node = jinja2.nodes.Call(jinja2.nodes.Name('ptrans_get', 'load'),
-                                            [jinja2.nodes.Name('locale', 'load'),
-                                             jinja2.nodes.Const(strid),
-                                             jinja2.nodes.Const(fallback)],
-                                            [], None, None)
-            return jinja2.nodes.Output([ptrans_node])
-
-    ptrans = PootleTranslationExtension
-
-except ImportError:
-    # No Jinja2, so don't define extension
-    pass
+_global_string_store = AsyncLocalisedStringStore()
 
 
-def init_localisation(localisation_directory=None, allow_empty=False, locale_hook=None):
+def init_localisation(localisation_directory=None, allow_empty=False, locale_hook=None) -> AsyncLocalisedStringStore:
     _global_string_store.localisation_dir = localisation_directory
     if callable(locale_hook):
         _global_string_store.install_locale_hook(locale_hook)
     _global_string_store.allow_empty = allow_empty
     return _global_string_store
-
-
-def best_locale():
-    """
-    Find best locale code for request's accept-language header, given the localisations available
-
-    Prefers an exact match, otherwise it settles for first inexact match.
-    Falls back to en-GB if nothing else will do.
-
-    :return: locale code
-    """
-    locale = "en-GB"
-    try:
-        # noinspection PyUnresolvedReferences
-        import flask
-        if flask.has_request_context():
-            best = flask.request.accept_languages.best_match(_global_string_store.known_locales)
-            if best:
-                locale = best
-    except ImportError:
-        pass
-    return locale

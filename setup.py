@@ -3,15 +3,15 @@ from setuptools import setup, find_packages
 
 setup(
     name='flask-ptrans',
-    version='1.4',
+    version='1.5',
     description='Flask extension for localisation of templates from JSON files',
     author='Peter Harris',
     author_email='peter.harris@skyscanner.net',
     url='https://github.com/Skyscanner/flask-ptrans',
-    download_url='https://github.com/Skyscanner/flask-ptrans/tarball/1.4',
+    download_url='https://github.com/Skyscanner/flask-ptrans/tarball/1.5',
     packages=find_packages(),
-    install_requires=['flask'],
-    extras_require={'test': 'nose'},
+    install_requires=[],
+    extras_require={'test': 'nose', 'flask': 'flask'},
     entry_points={
         'console_scripts': [
             'ptrans_aggregate = flask_ptrans.scripts.aggregate_json:main',
@@ -24,10 +24,11 @@ setup(
     classifiers=[
         'Development Status :: 4 - Beta',
         'Framework :: Flask',
+        'Framework :: Tornado',
         'Intended Audience :: Developers',
         'Programming Language :: Python :: 2.7',
-        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.5',
         ],
-    keywords=['localisation', 'jinja2', 'flask', 'pootle'],
+    keywords=['localisation', 'jinja2', 'flask', 'pootle', 'tornado'],
     license='Apache License v2',
     )
