@@ -82,7 +82,10 @@ def test_script_template():
     script_with_strings = t.render(locale='en-GB')
     script_without_strings = t.render(locale='es-ES')
     assert script_without_strings == '<script> strings = {}; </script>'
-    assert script_with_strings == '<script> strings = {"prefix-a": "A", "prefix-b": "B"}; </script>'
+    assert script_with_strings in [
+        '<script> strings = {"prefix-a": "A", "prefix-b": "B"}; </script>',
+        '<script> strings = {"prefix-b": "B", "prefix-a": "A"}; </script>',
+        ]   # can't be sure of order, since it's from a dict
 
 
 # stop "import *" from taking anything except test cases

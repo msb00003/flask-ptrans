@@ -15,6 +15,7 @@ venv3
 # Tests
 test_out
 .coverage
+.cache/
 
 # for example localisation
 example/localisation/qps-ploc.json
