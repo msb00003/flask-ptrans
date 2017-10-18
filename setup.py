@@ -23,7 +23,6 @@ setup(
         },
     classifiers=[
         'Development Status :: 4 - Beta',
-        'Framework :: Jinja2',
         'Intended Audience :: Developers',
         'Programming Language :: Python :: 3',
         ],
