@@ -16,7 +16,6 @@ See the License for the specific language governing permissions and limitations 
 
 """
 
-from nose.tools import assert_equals
 from flask_ptrans import ptrans
 
 FAKE_LOCALES = {
@@ -43,9 +42,9 @@ def test_simple_lookup():
     lookup return the correct string for the locale?
     """
     store = fake_string_store(FAKE_LOCALES)
-    assert_equals(store.lookup("es-ES", "hello", "FAIL"), "hola")
-    assert_equals(store.lookup("en-GB", "hello", "FAIL"), "hello")
-    assert_equals(store.lookup("fr-FR", "hello", "FAIL"), "bonjour")
+    assert store.lookup("es-ES", "hello", "FAIL") == "hola"
+    assert store.lookup("en-GB", "hello", "FAIL") == "hello"
+    assert store.lookup("fr-FR", "hello", "FAIL") == "bonjour"
 
 
 def test_lookup_no_string():
@@ -53,7 +52,7 @@ def test_lookup_no_string():
     lookup falls back to the default when string ID unknown
     """
     store = fake_string_store(FAKE_LOCALES)
-    assert_equals(store.lookup("en-GB", "goodbye", "FAIL-EN"), "FAIL-EN")
+    assert store.lookup("en-GB", "goodbye", "FAIL-EN") == "FAIL-EN"
 
 
 def test_lookup_empty_string():
@@ -62,9 +61,9 @@ def test_lookup_empty_string():
     unless allow_empty is True
     """
     store = fake_string_store(FAKE_LOCALES)
-    assert_equals(store.lookup("es-ES", "empty", "NOT EMPTY"), "NOT EMPTY")
+    assert store.lookup("es-ES", "empty", "NOT EMPTY") == "NOT EMPTY"
     store2 = fake_string_store(FAKE_LOCALES, allow_empty=True)
-    assert_equals(store2.lookup("es-ES", "empty", "NOT EMPTY"), "")
+    assert store2.lookup("es-ES", "empty", "NOT EMPTY") == ""
 
 
 def test_lookup_no_locale():
@@ -72,7 +71,7 @@ def test_lookup_no_locale():
     lookup falls back to the default when locale is unknown
     """
     store = fake_string_store(FAKE_LOCALES)
-    assert_equals(store.lookup("jp-JP", "hello", "FAIL-JP"), "FAIL-JP")
+    assert store.lookup("jp-JP", "hello", "FAIL-JP") == "FAIL-JP"
 
 
 def test_lookup_locale_wrong_type():
@@ -80,7 +79,7 @@ def test_lookup_locale_wrong_type():
     lookup falls back to the default when locale is wrong type (e.g. None)
     """
     store = fake_string_store(FAKE_LOCALES)
-    assert_equals(store.lookup(None, "hello", "FAIL-TYPE"), "FAIL-TYPE")
+    assert store.lookup(None, "hello", "FAIL-TYPE") == "FAIL-TYPE"
 
 
 def test_lookup_with_substitution():
@@ -88,7 +87,7 @@ def test_lookup_with_substitution():
     lookup can perform keyword substitutions
     """
     store = fake_string_store(FAKE_LOCALES)
-    assert_equals(store.lookup("en-GB", "hello-who", "FAIL", who="World"), "Hello, World!")
+    assert store.lookup("en-GB", "hello-who", "FAIL", who="World") == "Hello, World!"
 
 
 def test_lookup_substitution_fail():
@@ -97,7 +96,7 @@ def test_lookup_substitution_fail():
     """
     store = fake_string_store(FAKE_LOCALES)
     # mis-spelled keyword argument to make sub of {who} fail
-    assert_equals(store.lookup("es-ES", "hello-who", "Hello, {who}!", woh="World"), "Hola, {who}!")
+    assert store.lookup("es-ES", "hello-who", "Hello, {who}!", woh="World") == "Hola, {who}!"
 
 
 def test_lookup_substitution_wrong_type():
@@ -105,7 +104,7 @@ def test_lookup_substitution_wrong_type():
     substitutions still done on fallback text even if locale is wrong type
     """
     store = fake_string_store(FAKE_LOCALES)
-    assert_equals(store.lookup(None, "hello-who", "Hello, {who}!", who="World"), "Hello, World!")
+    assert store.lookup(None, "hello-who", "Hello, {who}!", who="World") == "Hello, World!"
 
 
 def test_lookup_cascade_simple():
@@ -113,8 +112,8 @@ def test_lookup_cascade_simple():
     lookup_cascade finds correct string for locale
     """
     store = fake_string_store(FAKE_LOCALES)
-    assert_equals(store.lookup_cascade("en-GB", "hello"), "hello")
-    assert_equals(store.lookup_cascade("es-ES", "hello"), "hola")
+    assert store.lookup_cascade("en-GB", "hello") == "hello"
+    assert store.lookup_cascade("es-ES", "hello") == "hola"
 
 
 def test_lookup_cascade_fallback_string():
@@ -122,8 +121,8 @@ def test_lookup_cascade_fallback_string():
     fall back to fallback string
     """
     store = fake_string_store(FAKE_LOCALES)
-    assert_equals(store.lookup_cascade("en-GB", "goodbye", fallback="Goodbye"), "Goodbye")
-    assert_equals(store.lookup_cascade("es-ES", "goodbye", fallback="Adios"), "Adios")
+    assert store.lookup_cascade("en-GB", "goodbye", fallback="Goodbye") == "Goodbye"
+    assert store.lookup_cascade("es-ES", "goodbye", fallback="Adios") == "Adios"
 
 
 def test_lookup_cascade_fallback_locale():
@@ -133,9 +132,9 @@ def test_lookup_cascade_fallback_locale():
     store = fake_string_store(FAKE_LOCALES)
 
     # Fall back to en-GB by default
-    assert_equals(store.lookup_cascade(None, "hello"), "hello")
+    assert store.lookup_cascade(None, "hello") == "hello"
     # Fall back to specified locale
-    assert_equals(store.lookup_cascade(None, "hello", fallback_locale="es-ES"), "hola")
+    assert store.lookup_cascade(None, "hello", fallback_locale="es-ES") == "hola"
 
 
 def test_lookup_cascade_no_fallback():
@@ -143,22 +142,19 @@ def test_lookup_cascade_no_fallback():
     fall back to string key
     """
     store = fake_string_store(FAKE_LOCALES)
-    assert_equals(store.lookup_cascade("en-GB", "goodbye"), "goodbye")
-    assert_equals(store.lookup_cascade("es-ES", "goodbye"), "goodbye")
+    assert store.lookup_cascade("en-GB", "goodbye") == "goodbye"
+    assert store.lookup_cascade("es-ES", "goodbye") == "goodbye"
     # If string does not exist in fallback locale, even if it does exist in en-GB,
     # fall back to key
-    assert_equals(store.lookup_cascade("es-AR", "only-english", fallback_locale="es-ES"), "only-english")
+    assert store.lookup_cascade("es-AR", "only-english", fallback_locale="es-ES") == "only-english"
 
 
 def test_subset():
     store = fake_string_store(FAKE_LOCALES)
-    assert_equals(store.subset('es-ES', 'hello'),
-                  {"hello": "hola",
-                   "hello-who": "Hola, {who}!"})
-    assert_equals(store.subset('es-ES', 'hello-'),
-                  {"hello-who": "Hola, {who}!"})
-    assert_equals(store.subset('es-ES', 'nothing'), {})
-    assert_equals(store.subset(None, 'hello'), {})
+    assert store.subset('es-ES', 'hello') == {"hello": "hola", "hello-who": "Hola, {who}!"}
+    assert store.subset('es-ES', 'hello-') == {"hello-who": "Hola, {who}!"}
+    assert store.subset('es-ES', 'nothing') == {}
+    assert store.subset(None, 'hello') == {}
 
 
 # stop "import *" from taking anything except test cases

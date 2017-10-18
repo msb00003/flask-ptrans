@@ -25,7 +25,6 @@ import logging
 import textwrap
 from contextlib import contextmanager
 
-from nose.tools import assert_equals
 from flask_ptrans.scripts import aggregate_json, check_templates, resolve_json_conflicts, pseudolocalise
 
 
@@ -91,8 +90,8 @@ def test_populate_dir():
         populate_with_fake_files(dirpath, test_files)
         gen = os.walk(dirpath)
         path, dirnames, filenames = next(gen)
-        assert_equals(path, dirpath)
-        assert_equals(sorted(dirnames), ["empty", "notempty"])
+        assert path == dirpath
+        assert sorted(dirnames) == ["empty", "notempty"]
     # wiped
     assert not os.path.exists(dirpath)
 
@@ -140,12 +139,12 @@ def test_aggregate_json():
         populate_with_fake_files(dirpath, test_files)
         all_locales = aggregate_json.extract_all_locales([dirpath], pattern="*/*.json", encoding="utf-8")
         for locale in all_locales:
-            assert_equals(all_locales[locale], expected[locale])
+            assert all_locales[locale] == expected[locale]
         aggregate_json.save_locale_files(dirpath, all_locales)
         # check the round-trip via saved JSON
         with open(os.path.join(dirpath, "fr-fr.json"), "rb") as f:
             french = json.loads(f.read().decode("ascii"))  # strict JSON is ascii with \uXXXX escape codes
-        assert_equals(french, expected['fr-fr'])
+        assert french == expected['fr-fr']
 
 
 def test_check_templates_find_strings():
@@ -182,8 +181,8 @@ def test_check_templates_find_strings():
         populate_with_fake_files(dirpath, test_files)
         string_store = check_templates.StringStore()
         string_store.scan_templates(dirpath)
-        assert_equals(string_store.all_strings, expected)
-        assert_equals(string_store.new_strings, set(expected))  # all new
+        assert string_store.all_strings == expected
+        assert string_store.new_strings == set(expected)  # all new
 
 
 def test_check_templates_spot_changed_string():
@@ -208,14 +207,14 @@ def test_check_templates_spot_changed_string():
         populate_with_fake_files(dirpath, test_files)
         string_store = check_templates.StringStore()
         string_store.scan_json_files(os.path.join(dirpath, "localisation"), "en-gb.json", nested=True)
-        assert_equals(string_store.all_strings, {"key1": "hippopotamus"})
+        assert string_store.all_strings == {"key1": "hippopotamus"}
         string_store.scan_templates(os.path.join(dirpath, "templates"))
-        assert_equals(len(string_store.problems), 1)
+        assert len(string_store.problems) == 1
         problem = string_store.problems[0]
-        assert_equals(problem.strid, "key1")
-        assert_equals(problem.body, "rhinoceros")
-        assert_equals(problem.desc, "Changed string?")
-        assert_equals(problem.serious, True)
+        assert problem.strid == "key1"
+        assert problem.body == "rhinoceros"
+        assert problem.desc == "Changed string?"
+        assert problem.serious is True
 
 
 def test_check_templates_spot_duplicates():
@@ -244,11 +243,11 @@ def test_check_templates_spot_duplicates():
         populate_with_fake_files(dirpath, test_files)
         string_store = check_templates.StringStore()
         string_store.scan_json_files(dirpath, "en-gb.json", nested=True)
-        assert_equals(string_store.all_strings, expected)
-        assert_equals(string_store.string_owner, {"key1": "dir1", "key2": "dir1"})
-        assert_equals(len(string_store.problems), 2)
+        assert string_store.all_strings == expected
+        assert string_store.string_owner == {"key1": "dir1", "key2": "dir1"}
+        assert len(string_store.problems) == 2
         for problem in string_store.problems:
-            assert_equals(problem.desc, "Duplicate (from dir1)")
+            assert problem.desc == "Duplicate (from dir1)"
 
 
 def test_resolve_json_conflicts():
@@ -279,7 +278,7 @@ def test_resolve_json_conflicts():
         resolve_json_conflicts.resolve_json_file(filepath, interactive=False, update=True)
         with open(filepath, "r") as f:
             updated = json.load(f)
-        assert_equals(updated, expected)
+        assert updated == expected
 
 
 def test_pseudolocalise_with_placeholders():

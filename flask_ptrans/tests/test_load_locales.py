@@ -20,10 +20,10 @@ import os
 import json
 import tempfile
 
+import pytest
+
 from contextlib import contextmanager
 from flask_ptrans import ptrans
-
-from nose.tools import assert_equals
 
 
 FAKE_LOCALES = {
@@ -31,6 +31,7 @@ FAKE_LOCALES = {
     "en-US": {"hello": {"value": "howdy"}},  # alt JSON style
     "es-ES": {"hello": "hola"},
     "en-XX": {"hello": 0},  # invalid string
+    "bg-BG": {"hello": "Здравейте"}
 }
 
 
@@ -45,6 +46,7 @@ def temporary_string_store(fake_locales, broken=False):
     emptied out and deleted after the with statement.
 
     :param fake_locales: dict of {locale:{key:value}}
+    :param broken: true to generate invalid JSON
     :return: a ptrans.LazyLocalisedStringStore
     """
     dirpath = tempfile.mkdtemp()
@@ -52,7 +54,7 @@ def temporary_string_store(fake_locales, broken=False):
     for locale in fake_locales:
         filename = os.path.join(dirpath, locale + ".json")
         files_to_delete.append(filename)
-        with open(filename, "w") as f:
+        with open(filename, "w", encoding="utf-8") as f:
             if broken:
                 f.write("#this is not valid JSON#")
             else:
@@ -64,18 +66,19 @@ def temporary_string_store(fake_locales, broken=False):
     os.rmdir(dirpath)
 
 
-def test_lazy_loading():
+@pytest.mark.parametrize("locale", ["en-US", "bg-BG"])
+def test_lazy_loading(locale):
     """
     before trying to fetch a string, no locales loaded
     afterwards, only the needed locale loaded
     """
     with temporary_string_store(FAKE_LOCALES) as store:
         assert not store.locales
-        store.lookup("en-US", "hello", "hello")
-        assert 'en-US' in store.locales
+        store.lookup(locale, "hello", "hello")
+        assert locale in store.locales
         # store is allowed to cache other locales as same dict, but it definitely
         # shouldn't have loaded any others
-        assert all(d is store.locales['en-US'] for d in store.locales.values())
+        assert all(d is store.locales[locale] for d in store.locales.values())
 
 
 def test_known_locales():
@@ -98,14 +101,14 @@ def test_partial_match():
     requesting es-XX loads es-ES file and caches it as es-XX
     """
     with temporary_string_store(FAKE_LOCALES) as store:
-        assert_equals(store.lookup("es-XX", "hello", "FAIL"), "hola")
+        assert store.lookup("es-XX", "hello", "FAIL") == "hola"
         assert "es-XX" in store.locales
         assert "es-ES" in store.locales  # cached actual locale
         # check that locale file is not reloaded for same language
-        assert_equals(store.lookup("es-ES", "hello", "FAIL"), "hola")
+        assert store.lookup("es-ES", "hello", "FAIL") == "hola"
         assert store.locales["es-XX"] is store.locales["es-ES"]
         # coverage for case where es-ES already loaded
-        assert_equals(store.lookup("es-YY", "hello", "FAIL"), "hola")
+        assert store.lookup("es-YY", "hello", "FAIL") == "hola"
 
 
 def test_failed_match():
@@ -114,8 +117,8 @@ def test_failed_match():
     """
     with temporary_string_store(FAKE_LOCALES) as store:
         store.lookup("jp-JP", "hello", "hello")
-        assert_equals(set(store.locales), {'jp-JP'})
-        assert_equals(store.locales["jp-JP"], {})
+        assert set(store.locales) == {'jp-JP'}
+        assert store.locales["jp-JP"] == {}
 
 
 def test_broken_json():
@@ -125,7 +128,7 @@ def test_broken_json():
     with temporary_string_store(FAKE_LOCALES, broken=True) as store:
         store.lookup("en-gb", "hello", "hello")
         assert "en-gb" in store.locales
-        assert_equals(store.locales["en-gb"], {})
+        assert store.locales["en-gb"] == {}
 
 
 def test_set_no_directory():
@@ -140,7 +143,7 @@ def test_best_locale_no_request():
     best_locale returns en-GB if flask has no request context or
     if no locales are known
     """
-    assert_equals(ptrans.best_locale(), "en-GB")
+    assert ptrans.best_locale() == "en-GB"
 
 
 # stop "import *" from taking anything except test cases

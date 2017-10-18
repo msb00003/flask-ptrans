@@ -16,9 +16,9 @@ See the License for the specific language governing permissions and limitations 
 
 """
 
-from nose.tools import assert_equals, assert_raises
+from pytest import raises
 import jinja2
-from flask.json import tojson_filter
+import json
 from flask_ptrans.ptrans import _global_string_store as string_store
 
 
@@ -29,7 +29,7 @@ def fake_jinja(template_dict):
     """
     jinja_env = jinja2.Environment(loader=jinja2.DictLoader(template_dict))
     jinja_env.add_extension("flask_ptrans.ptrans.ptrans")
-    jinja_env.filters['tojson'] = tojson_filter
+    jinja_env.filters['tojson'] = json.dumps
     return jinja_env
 
 
@@ -47,7 +47,7 @@ def test_trivial_template():
     """
     env = fake_jinja(FAKE_TEMPLATES)
     t = env.get_template("trivial.html")
-    assert_equals(t.render(), FAKE_TEMPLATES["trivial.html"])
+    assert t.render() == FAKE_TEMPLATES["trivial.html"]
 
 
 def test_simple_template():
@@ -56,7 +56,7 @@ def test_simple_template():
     """
     env = fake_jinja(FAKE_TEMPLATES)
     t = env.get_template("simple.html")
-    assert_equals(t.render(), "<p>Unknown</p>")
+    assert t.render() == "<p>Unknown</p>"
 
 
 def test_broken_template():
@@ -64,7 +64,8 @@ def test_broken_template():
     ptrans syntax fails to parse if it has nested control structures
     """
     env = fake_jinja(FAKE_TEMPLATES)
-    assert_raises(jinja2.TemplateSyntaxError, env.get_template, "broken.html")
+    with raises(jinja2.TemplateSyntaxError):
+        env.get_template("broken.html")
 
 
 def test_script_template():
@@ -80,8 +81,9 @@ def test_script_template():
     }
     script_with_strings = t.render(locale='en-GB')
     script_without_strings = t.render(locale='es-ES')
-    assert_equals(script_without_strings, '<script> strings = {}; </script>')
-    assert_equals(script_with_strings, '<script> strings = {"prefix-a": "A", "prefix-b": "B"}; </script>')
+    assert script_without_strings == '<script> strings = {}; </script>'
+    assert script_with_strings == '<script> strings = {"prefix-a": "A", "prefix-b": "B"}; </script>'
+
 
 # stop "import *" from taking anything except test cases
 __all__ = [name for name in dir() if name.startswith("test_")]

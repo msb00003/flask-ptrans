@@ -38,7 +38,6 @@ import glob
 import os.path
 import json
 
-import flask
 import jinja2.ext
 import jinja2.nodes
 
@@ -150,7 +149,7 @@ class LazyLocalisedStringStore(object):
                 string_dict = self.locales[locale] = self.locales[actual_locale]  # alias to already loaded locale
             else:
                 logging.info("ptrans loading %s", filepath)
-                with open(filepath, "r") as jsonfile:
+                with open(filepath, "r", encoding="utf-8") as jsonfile:
                     try:
                         string_dict = json.load(jsonfile)
                         # in case files haven't been aggregated and simplified...
@@ -256,6 +255,7 @@ class PootleTranslationExtension(jinja2.ext.Extension):
                                         [], None, None)
         return jinja2.nodes.Output([ptrans_node])
 
+
 ptrans = PootleTranslationExtension
 
 
@@ -269,15 +269,20 @@ def init_localisation(localisation_directory=None, allow_empty=False, locale_hoo
 def best_locale():
     """
     Find best locale code for request's accept-language header, given the localisations available
-
+    Only implemented if flask is installed
     Prefers an exact match, otherwise it settles for first inexact match.
     Falls back to en-GB if nothing else will do.
 
     :return: locale code
     """
     locale = "en-GB"
-    if flask.has_request_context():
-        best = flask.request.accept_languages.best_match(_global_string_store.known_locales)
-        if best:
-            locale = best
+    try:
+        # noinspection PyUnresolvedReferences
+        import flask
+        if flask.has_request_context():
+            best = flask.request.accept_languages.best_match(_global_string_store.known_locales)
+            if best:
+                locale = best
+    except ImportError:
+        pass
     return locale
