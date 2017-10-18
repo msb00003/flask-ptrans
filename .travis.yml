@@ -10,6 +10,8 @@ deploy:
   user: scavpy
   password:
     secure: qTu4JgzYGcIjsl3ehnH2VsaKaIzPOoYrszv3JvBK12Are1d0kgeUAuGjNio1w/V/MVwGLp4T4/hRTUqVsmfZhono+k5agSRs5NzTPS8DDClo7fdqQcVuvwra/PA1yL5fu8yrVdlU5p2hpEx3KOwge6eXdv8trsiAVTP15QSHVHJZyaKVhCfWnyMJlNzWeios680jxdhOtlalHnzrcmAy99lROaolfgDvbJADhnQAt4Wok3aSiv6Fp6BNALxpJM/XRJ7dlXDi0R2B1XYf4nl1Z07KE7Qsmb7ASi88gxgZ2m19TaWd2KRr4Nw7k9urNPINqr1SdXZGoJxkKuNQfb1Sai4bCBa5COpYdejcEwIXUR+p6KPKvIgF3zeKjaqDYZI27wrOPOY3dlLHE8NPwx900G2u6LGbrMkFtgnI8PHntpYutOsFlKnKRy7cPuODSZQenjNq8VnKRXjGClHmenS9PlsHzxylfl+hrtF8V6RVUH5vLhFkrosv5e2lvO0mvibzM4AqjcwTfqd+nMYiWT2tRokjcYHow/TW5NSR22HdgpniXxYyNcGzUBTJ5eCCXz7aUHn7u+1eeuhCGZNsMzx3XopBKN5jQuU5o3zkmFbtFpqRYT54pS0lCvlxAZtZmC3CAjEMg1+CT+AamgdEEIOEWsRwNZ00Q32GWbQTV+ojCWY=
+  distributions: sdist
   on:
     branch: master
     tags: true
+    condition: $TRAVIS_PYTHON_VERSION = "3.6"
