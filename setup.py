@@ -3,12 +3,12 @@ from setuptools import setup, find_packages
 
 setup(
     name='flask-ptrans',
-    version='2.0',
+    version='2.0.2',
     description='Flask extension for localisation of templates from JSON files',
     author='Peter Harris',
     author_email='peter.harris@skyscanner.net',
     url='https://github.com/Skyscanner/flask-ptrans',
-    download_url='https://github.com/Skyscanner/flask-ptrans/tarball/2.0',
+    download_url='https://github.com/Skyscanner/flask-ptrans/tarball/2.0.2',
     packages=find_packages(),
     install_requires=['jinja2'],
     extras_require={'test': 'pytest'},
