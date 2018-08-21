@@ -228,8 +228,8 @@ class PootleTranslationExtension(jinja2.ext.Extension):
         # expect a string ID (names and hyphens), then block_end
         name = parser.stream.expect('name')
         strid_buf = [name.value]
-        while parser.stream.current.type in ('name', 'sub'):
-            strid_buf.append(parser.stream.current.value)
+        while parser.stream.current.type in ('name', 'sub', 'integer'):
+            strid_buf.append(str(parser.stream.current.value))
             next(parser.stream)
         strid = ''.join(strid_buf)
         parser.stream.expect('block_end')   # %}

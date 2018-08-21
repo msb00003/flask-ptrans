@@ -18,10 +18,11 @@ See the License for the specific language governing permissions and limitations 
 """
 
 from __future__ import print_function, unicode_literals
-import os
+
 import json
-import tempfile
 import logging
+import os
+import tempfile
 import textwrap
 from contextlib import contextmanager
 
@@ -114,9 +115,9 @@ def test_aggregate_json():
         },
         "dir2/": {
             "fr-fr.json": {
-                "key4": "ça va?"    # unicode will be preserved, key4 will be included
+                "key4": "ça va?"  # unicode will be preserved, key4 will be included
             },
-            "qps-ploc.json": {       # pseudo-translation locale
+            "qps-ploc.json": {  # pseudo-translation locale
                 "key5": "pseudo"
             },
         },
@@ -156,6 +157,7 @@ def test_check_templates_find_strings():
             "syntax1.html": """
             <div>
               {% ptrans test-key1 %} body1 {% endptrans %}
+              {% ptrans test-key--5 %} body5 {% endptrans %}
             </div>
             """,
             "quotes.html": '''
@@ -176,6 +178,7 @@ def test_check_templates_find_strings():
         "test-key2": "body2",
         "test-key3": "body3",
         "test-key4": "multi-line body4 {insert}",
+        "test-key--5": "body5",
     }
     with throwaway_dir() as dirpath:
         populate_with_fake_files(dirpath, test_files)
@@ -230,8 +233,8 @@ def test_check_templates_spot_duplicates():
         },
         "dir2/": {
             "en-gb.json": {
-                "key1": "hippopotamus",     # duplicate but equal string
-                "key2": "camel"     # inconsistent string
+                "key1": "hippopotamus",  # duplicate but equal string
+                "key2": "camel"  # inconsistent string
             }
         }
     }
@@ -290,5 +293,5 @@ def test_pseudolocalise_with_placeholders():
     assert not (result == translatable_string)
     assert "{thing}" in result
     assert "{not}" in result
-    assert "{n: >+3,.7f}" in result     # more extreme formatting than will ever be used, still survives mangling
+    assert "{n: >+3,.7f}" in result  # more extreme formatting than will ever be used, still survives mangling
     assert result.startswith("[") and result.endswith("]")
